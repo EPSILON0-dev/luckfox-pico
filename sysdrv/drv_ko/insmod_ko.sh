@@ -14,7 +14,7 @@ __insmod()
 
 __rmmod_camera_sensor()
 {
-	for item in `echo "imx415 os04a10 sc4336 sc3336 sc530ai gc2053 sc200ai sc401ai sc450ai techpoint mis5001 mia1321"`
+	for item in `echo "imx219 imx415 os04a10 sc4336 sc3336 sc530ai gc2053 sc200ai sc401ai sc450ai techpoint mis5001 mia1321"`
 	do
 		if lsmod | grep $item | awk '{print $3}' |grep -w 0;then
 			rmmod $item
@@ -46,7 +46,15 @@ __insmod videobuf2-v4l2.ko
 __insmod videobuf2-vmalloc.ko
 __insmod videobuf2-cma-sg.ko
 
-__insmod imx415.ko
+# Hack to get the IMX219 working
+echo "insmod_ko.sh: hacking camera reset line" > /dev/kmsg
+echo 117 > /sys/class/gpio/export
+echo out > /sys/class/gpio/gpio117/direction
+echo 1 > /sys/class/gpio/gpio117/value
+sleep 0.1
+
+__insmod imx219.ko
+# __insmod imx415.ko
 __insmod os04a10.ko
 __insmod sc4336.ko
 __insmod sc3336.ko

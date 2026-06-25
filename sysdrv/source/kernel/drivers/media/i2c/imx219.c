@@ -113,8 +113,8 @@
 /* IMX219 native and active pixel array size. */
 #define IMX219_NATIVE_WIDTH		3296U
 #define IMX219_NATIVE_HEIGHT		2480U
-#define IMX219_PIXEL_ARRAY_LEFT		8U
-#define IMX219_PIXEL_ARRAY_TOP		8U
+#define IMX219_PIXEL_ARRAY_LEFT		0U // Original: 8U
+#define IMX219_PIXEL_ARRAY_TOP		0U // Original: 8U
 #define IMX219_PIXEL_ARRAY_WIDTH	3280U
 #define IMX219_PIXEL_ARRAY_HEIGHT	2464U
 
@@ -534,6 +534,10 @@ static const struct imx219_mode supported_modes[] = {
 	},
 };
 
+static const s64 imx219_link_freq_menu[] = {
+    456000000,
+};
+
 struct imx219 {
 	struct v4l2_subdev sd;
 	struct media_pad pad;
@@ -549,6 +553,7 @@ struct imx219 {
 	struct v4l2_ctrl_handler ctrl_handler;
 	/* V4L2 Controls */
 	struct v4l2_ctrl *pixel_rate;
+	struct v4l2_ctrl *link_freq;
 	struct v4l2_ctrl *exposure;
 	struct v4l2_ctrl *vflip;
 	struct v4l2_ctrl *hflip;
@@ -782,6 +787,8 @@ static int imx219_set_ctrl(struct v4l2_ctrl *ctrl)
 		ret = imx219_write_reg(imx219, IMX219_REG_TESTP_GREENB,
 				       IMX219_REG_VALUE_16BIT, ctrl->val);
 		break;
+	case V4L2_CID_LINK_FREQ:
+		break;
 	default:
 		dev_info(&client->dev,
 			 "ctrl(id:0x%x,val:0x%x) is not handled\n",
@@ -969,6 +976,18 @@ static int imx219_set_framefmt(struct imx219 *imx219)
 	return -EINVAL;
 }
 
+// XXX For now as a test we set it to constant 30fps.
+static int imx219_g_frame_interval(struct v4l2_subdev *sd,
+				   struct v4l2_subdev_frame_interval *fi)
+{
+	(void)sd;
+
+	fi->interval.numerator = 10000;
+	fi->interval.denominator = 300000;
+
+	return 0;
+}
+
 static const struct v4l2_rect *
 __imx219_get_pad_crop(struct imx219 *imx219, struct v4l2_subdev_pad_config *cfg,
 		      unsigned int pad, enum v4l2_subdev_format_whence which)
@@ -1028,6 +1047,7 @@ static int imx219_start_streaming(struct imx219 *imx219)
 
 	ret = pm_runtime_get_sync(&client->dev);
 	if (ret < 0) {
+		dev_err(&client->dev, "%s power management failed: %d\n", __func__, ret);
 		pm_runtime_put_noidle(&client->dev);
 		return ret;
 	}
@@ -1049,12 +1069,15 @@ static int imx219_start_streaming(struct imx219 *imx219)
 
 	/* Apply customized values from user */
 	ret =  __v4l2_ctrl_handler_setup(imx219->sd.ctrl_handler);
-	if (ret)
-		goto err_rpm_put;
+	if (ret) {
+		dev_info(&client->dev, "%s control handler setup failed: %d IGNORING", __func__, ret);
+		// goto err_rpm_put;
+	}
 
 	/* set stream on register */
 	ret = imx219_write_reg(imx219, IMX219_REG_MODE_SELECT,
 			       IMX219_REG_VALUE_08BIT, IMX219_MODE_STREAMING);
+	dev_info(&client->dev, "%s enabling stream mode via i2c: %d", __func__, ret);
 	if (ret)
 		goto err_rpm_put;
 
@@ -1065,6 +1088,7 @@ static int imx219_start_streaming(struct imx219 *imx219)
 	return 0;
 
 err_rpm_put:
+	dev_err(&client->dev, "imx219_start_streaming error\n");
 	pm_runtime_put(&client->dev);
 	return ret;
 }
@@ -1247,6 +1271,7 @@ static const struct v4l2_subdev_core_ops imx219_core_ops = {
 
 static const struct v4l2_subdev_video_ops imx219_video_ops = {
 	.s_stream = imx219_set_stream,
+	.g_frame_interval = imx219_g_frame_interval,
 };
 
 static const struct v4l2_subdev_pad_ops imx219_pad_ops = {
@@ -1291,6 +1316,14 @@ static int imx219_init_controls(struct imx219 *imx219)
 					       IMX219_PIXEL_RATE,
 					       IMX219_PIXEL_RATE, 1,
 					       IMX219_PIXEL_RATE);
+
+	// Link frequency menu
+	imx219->link_freq = v4l2_ctrl_new_int_menu(ctrl_hdlr,
+        &imx219_ctrl_ops,
+        V4L2_CID_LINK_FREQ,
+        ARRAY_SIZE(imx219_link_freq_menu) - 1,
+        0,
+        imx219_link_freq_menu);
 
 	/* Initial vblank/hblank/exposure parameters based on current mode */
 	imx219->vblank = v4l2_ctrl_new_std(ctrl_hdlr, &imx219_ctrl_ops,
@@ -1524,6 +1557,7 @@ static int imx219_probe(struct i2c_client *client)
 	}
 
 	ret = v4l2_async_register_subdev_sensor_common(&imx219->sd);
+	dev_info(dev, "register_subdev returned: %d\n", ret);
 	if (ret < 0) {
 		dev_err(dev, "failed to register sensor sub-device: %d\n", ret);
 		goto error_media_entity;
