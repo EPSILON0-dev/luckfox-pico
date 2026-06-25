@@ -1,41 +1,46 @@
 ![luckfox](https://github.com/LuckfoxTECH/luckfox-pico/assets/144299491/cec5c4a5-22b9-4a9a-abb1-704b11651e88)
 # Luckfox Pico SDK
-[English Version](./README.md)
-* 本SDK基于RK官方提供的SDK修改而来
-* 专为Luckfox Pico系列开发板提供客制化的SDK
-* 旨在为开发者提供更好的编程体验
-## SDK 更新日志
-+ 当前版本 V1.4
-1. 更新uboot，提供rv1106使用spi_nand和emmc快速启动的支持
-2. 优化了uboot对SD卡的兼容性，减少识别SD卡失败的概率
-3. 更新内核版本为5.10.160，提高rv1106g3的npu频率
-4. 更新buildroot的镜像源，使软件包下载更加稳定
-5. 添加了自定义文件系统的支持
-6. 部分bug修复
-## SDK 使用说明
-* 推荐SDK使用系统环境为Ubuntu 22.04
-### 安装依赖
+[中文版](./README_CN.md)
+* This SDK is modified based on the SDK provided by Rockchip
+* It provides a customized SDK specifically for Luckfox Pico series development boards 
+* Aimed at providing developers with a better programming experience
+## SDK Updatelog
++ Current Version: V1.4
+1. Updated U-Boot to support fast boot for RV1106 using SPI NAND and eMMC.
+2. Optimized U-Boot compatibility with SD cards, reducing the likelihood of SD card recognition failures.
+3. Updated the kernel version to 5.10.160, increasing the NPU frequency for RV1106G3.
+4. Updated the Buildroot mirror source for more stable package downloads.
+5. Added support for custom file systems.
+6. Partial bug fixes
+## SDK Usage Instructions
+* recommended operating system : Ubuntu 22.04 
+### Installing Dependencies
 ```shell
-sudo apt-get install repo git ssh make gcc gcc-multilib g++-multilib module-assistant expect g++ gawk texinfo libssl-dev bison flex fakeroot cmake unzip gperf autoconf device-tree-compiler libncurses5-dev pkg-config bc python-is-python3 passwd openssl openssh-server openssh-client vim file cpio rsync
+sudo apt-get install -y git ssh make gcc gcc-multilib g++-multilib module-assistant expect g++ gawk texinfo libssl-dev bison flex fakeroot cmake unzip gperf autoconf device-tree-compiler libncurses5-dev pkg-config bc python-is-python3 passwd openssl openssh-server openssh-client vim file cpio rsync
 ```
-### 获取SDK
-* github
+### Get SDK
+```
+git clone https://github.com/LuckfoxTECH/luckfox-pico.git
+```
+### Environment Variables
+* The cross-compilation toolchain needs to be set Environment Variables
+```
+cd {SDK_PATH}/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/
+source env_install_toolchain.sh
+```
+### Get the SDK
+* GitHub
     ```
-    git clone https://github.com/LuckfoxTECH/luckfox-pico.git
+    git clone <https://github.com/LuckfoxTECH/luckfox-pico.git>
     ```
-* gitee
+* Gitee
     ```
-    git clone https://gitee.com/LuckfoxTECH/luckfox-pico.git
+    git clone <https://gitee.com/LuckfoxTECH/luckfox-pico.git>
     ```
-### 环境变量
-* 需要将交叉编译工具链设置
-    ```
-    cd {SDK_PATH}/tools/linux/toolchain/arm-rockchip830-linux-uclibcgnueabihf/
-    source env_install_toolchain.sh
-    ```
-### build.sh使用说明
-* SDK使用build.sh脚本实现自动编译，大部分编译操作均可以通过build.sh自动完成.
-#### build.sh全部可用选项
+### Instructions for build.sh
+* The build.sh script is used to automate the compilation process. 
+* Most of the compilation operations can be completed automatically through build.sh.
+#### Options for build.sh
 ```shell
 Usage: build.sh [OPTIONS]
 Available options:
@@ -76,12 +81,12 @@ info               -see the current board building information
 buildrootconfig    -config buildroot and save defconfig"
 kernelconfig       -config kernel and save defconfig"
 ```
-#### 选择参考的板级配置
+#### Select the referenced board configuration
 ```shell
 ./build.sh lunch
 ```
-+ 输出对应的Luckfox-pico硬件型号,输入对应编号后进入存储介质选项（直接回车选择序号[0]选项）
-  ```shell
++ Output the corresponding Luckfox-pico hardware model. Enter the corresponding number to proceed to the storage media options (press Enter to select option [0] directly).
+  ```shell 
   You're building on Linux
   Lunch menu...pick the Luckfox Pico hardware version:
   选择 Luckfox Pico 硬件版本:
@@ -99,8 +104,7 @@ kernelconfig       -config kernel and save defconfig"
                 [11] custom
   Which would you like? [0~11][default:0]:
   ```
-+ 输出对应的Luckfox-pico硬件型号支持的存储介质,输入对应编号后进入根文件系统选项（直接回车选择序号[0]选项）
-以Luckfox Pico Plus为例
++ Output the supported storage media for the corresponding Luckfox-pico hardware model. Enter the corresponding number to proceed to the root filesystem options (press Enter to select option [0] directly).For example, Luckfox Pico Plus.
   ```shell
     Lunch menu...pick the boot medium:
     选择启动媒介:
@@ -109,7 +113,7 @@ kernelconfig       -config kernel and save defconfig"
 
   Which would you like? [0~1][default:0]:
   ```
-+ 输出对应的Luckfox-pico硬件型号支持的根文件系统类型,输入对应编号后完成配置(直接回车选择序号[0]选项)
++ Output the supported root filesystem types for the corresponding Luckfox-pico hardware model. Enter the corresponding number to complete the configuration (press Enter to select option [0] directly).
   ```shell
     Lunch menu...pick the system version:
     选择系统版本:
@@ -117,8 +121,8 @@ kernelconfig       -config kernel and save defconfig"
 
   Which would you like? [0~1][default:0]:
   ```
-+ 如果需要使用旧的配置方式或者使用自定义的板级支持文件，在配置Luckfox-pico硬件型号时，选择“custom”选项
-  ```shell
++ If you need to use the old configuration method or a custom board support file, select the "[7]custom" option when configuring the Luckfox-pico hardware model.
+  ```shell 
   You're building on Linux
     Lunch menu...pick the Luckfox Pico hardware version:
     选择 Luckfox Pico 硬件版本:
@@ -271,83 +275,91 @@ kernelconfig       -config kernel and save defconfig"
                                application(应用场景): IPC_FASTBOOT
   ----------------------------------------------------------------
   ```
-  输入对应的板级支持文件序号完成配置
-#### 设置 Buildroot 系统默认 WIFI 配置
-* 进入板级配置存放目录
+  Enter the corresponding board support file number to complete the configuration.
+#### Set Buildroot System Default WIFI Configuration
+* Navigate to the board-level configuration directory
     ```shell
     cd {SDK_PATH}/project/cfg/BoardConfig_IPC/
     ```
-* 打开对应的板级配置文件
-* 修改参数LF_WIFI_PASSWD和LF_WIFI_SSID
+* Open the corresponding board-level configuration file
+* Modify the parameters LF_WIFI_PASSWD and LF_WIFI_SSID
     ```shell
     export LF_WIFI_SSID="Your wifi ssid"
     export LF_WIFI_PSK="Your wifi password"
     ```
-#### 一键自动编译
-* 编译busybox/buildroot
-    ```shell
-    ./build.sh lunch   # 选择参考板级
-    ./build.sh         # 一键自动编译
+#### One-click Automatic Compilation
+```shell
+./build.sh lunch   # Select the reference board configuration
+./build.sh         # One-click automatic compilation
+```
+* Compile busybox/buildroot    
     ```
-#### 单独编译U-Boot
+    ./build.sh lunch   # Select the reference board
+    ./build.sh         # One-click automatic compilation  
+    ``` 
+#### Build U-Boot
 ```shell
 ./build.sh clean uboot
 ./build.sh uboot
 ```
-生成镜像文件：
+The path of the generated files:
+```
 output/image/MiniLoaderAll.bin
 output/image/uboot.img
-
-#### 单独编译kernel
+```
+#### Build kernel
 ```shell
 ./build.sh clean kernel
 ./build.sh kernel
 ```
-生成镜像文件：
+The path of the generated files:
+```
 output/image/boot.img
-
-#### 单独编译rootfs
+```
+#### Build rootfs
 ```shell
 ./build.sh clean rootfs
 ./build.sh rootfs
 ```
-* 注：编译后需使用`./build.sh firmware`命令重新打包
+* Note : After compilation, use the command ./build.sh firmware to repackage.
 
-#### 单独编译media
+#### Build media
 ```shell
 ./build.sh clean media
 ./build.sh media
 ```
-生成文件的存放目录：
+The path of the generated files:
 ```
 output/out/media_out
 ```
-* 注：编译后需使用`./build.sh firmware`命令重新打包
-#### 单独编译参考应用
+* Note : After compilation, use the command ./build.sh firmware to repackage.
+#### Build Reference Applications
 ```shell
 ./build.sh clean app
 ./build.sh app
 ```
-* 注1：app依赖media
-* 注2：编译后需使用`./build.sh firmware`命令重新打包
-#### 固件打包
+* Note 1: The app depends on media.
+* Note 2: After compilation, use the command ./build.sh firmware to repackage.
+#### Firmware Packaging
 ```shell
 ./build.sh firmware
 ```
-生成文件的存放目录：
+The path of the generated files:
+```
 output/image
-#### 内核设置
-``` shell
+```
+#### Kernel Config
+```shell
 ./build.sh kernelconfig
 ```
-打开 kernel 的 menuconfig 界面
-#### buildroot 设置
+Open the menuconfig interface for the kernel.
+#### Buildroot Config
 ```shell
 ./build.sh buildrootconfig
 ```
-打开 buildroot 的 menuconfig 界面
-* 注：仅在选择 buildroot 作为 rootfs 时才能正常运行
+Open the menuconfig interface for buildroot.
+* Note: This is only applicable when selecting buildroot as the root file system.
 
-### 注意事项
-    在windows下复制源码包时，linux下的可执行文件可能变为非可执行文件，或者软连接失效导致无法编译使用。
-    因此使用时请注意不要在windows下复制源代码包。
+## Notices
+When copying the source code package under Windows, the executable file under Linux may become a non-executable file, or the soft link fails and cannot be compiled and used.
+Therefore, please be careful not to copy the source code package under Windows.
